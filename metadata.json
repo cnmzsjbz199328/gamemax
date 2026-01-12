@@ -1,0 +1,5 @@
+{
+  "name": "Skeleton AI Game Engine",
+  "description": "A high-performance H5 game generator that uses specialized 'skeleton' templates to create polished web games with Gemini AI.",
+  "requestFramePermissions": []
+}

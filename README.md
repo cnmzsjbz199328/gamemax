@@ -1,11 +1,66 @@
-<div align="center">
+# Skeleton AI Game Engine: 设计思路与架构全解
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+本项目展示了一种高度优雅的 **“纯前端 + 静态资源”** AI 应用架构。其核心理念是：**不让 AI 从零开始写代码，而是让 AI 在预设好的“逻辑骨架”中进行创作。**
 
-  <h1>Built with AI Studio</h2>
+---
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## 1. 核心设计哲学：骨架驱动 (Skeleton-Driven)
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+传统的 AI 代码生成往往面临“幻觉”导致的代码不可运行、依赖库缺失或结构混乱的问题。本项目采用了 **两阶段引导策略**：
 
-</div>
+### 阶段 A：分类识别 (Catalog Selection)
+- **行为**：使用轻量级模型 (`gemini-3-flash`) 对用户需求进行语义匹配。
+- **目的**：从预设的 `catalog.md` 中选出最适合的游戏引擎模版。
+- **优势**：确保 AI 在开始写逻辑前，先进入正确的上下文（比如：跑酷游戏不应该用物理引擎模版）。
+
+### 阶段 B：定向填充 (Targeted Filling)
+- **行为**：加载对应的 `.md` 骨架文件。该文件包含 `[CORE ENGINE]`（不可变部分）和 `[EDITABLE AREA]`（AI 发挥部分）。
+- **目的**：让高性能模型 (`gemini-3-pro`) 仅针对特定区域进行代码实现。
+- **优势**：**百分之百的运行成功率**。因为基础的渲染循环（Loop）、画布初始化（Canvas Setup）和错误监控（Error Handling）是由人类开发者预先写好的稳定代码。
+
+---
+
+## 2. 技术架构 (Technical Architecture)
+
+### 2.1 纯前端流程
+1. **静态加载**：应用启动时，通过 `fetch` API 动态读取位于 `/skeletons/` 目录下的 Markdown 文件。这些文件既是给人类看的文档，也是给 AI 读的“说明书”。
+2. **状态机管理**：React 负责管理 `prompt -> skeletonId -> code -> preview` 的流转状态。
+3. **安全隔离 (Iframe Sandbox)**：生成的游戏代码通过 `srcDoc` 注入到隔离的 `iframe` 中，并开启 `sandbox` 属性，防止恶意脚本访问宿主环境。
+
+### 2.2 跨层通信
+- **Runtime Monitoring**：在骨架代码中植入了全局错误监听器 `window.onerror`。
+- **PostMessage**：当预览环境发生崩溃时，通过 `parent.postMessage` 将错误实时回传给宿主 UI，并在“Logs”面板中显示。这种反馈回路让用户能感知到 AI 生成代码的健康状况。
+
+---
+
+## 3. UI/UX 设计亮点
+
+### 3.1 沉浸式侧边栏 (The Control Center)
+- **实时日志 (Real-time Logs)**：模拟终端的视觉感受。AI 的思考过程（选择模版 -> 注入代码）被具象化为一条条日志，极大缓解了用户等待生成时的焦虑。
+- **模版可见性**：当 AI 选定模版后，UI 会明确显示当前使用的骨架 ID，建立用户对系统工作逻辑的信任。
+
+### 3.2 生产级预览 (The Workspace)
+- **双模切换**：预览模式看效果，源码模式看逻辑。
+- **生成动画**：使用了 Tailwind 的渐变和波纹动画，营造出一种“AI 正在精密计算”的科技感。
+
+---
+
+## 4. 如何复刻这种模式？
+
+如果你想复刻这种架构来开发其他应用（如：AI 网页生成器、AI 数据报表工具），请遵循以下步骤：
+
+1. **定义目录 (Catalog)**：创建一个清单，列出所有支持的场景。
+2. **编写骨架 (Skeletons)**：
+   - 包含稳定的基础代码。
+   - 明确标注 `// AI HERE` 区域。
+   - 提供一份“角色定义”，告诉 AI 哪些函数可以调用，哪些变量必须维持。
+3. **两级路由**：
+   - 第一级：根据用户输入选模版。
+   - 第二级：根据模版生成具体逻辑。
+4. **反馈闭环**：捕获子环境错误，反馈给主界面，甚至可以作为下一次生成（Auto-Repair）的输入。
+
+---
+
+## 5. 总结
+
+`Skeleton AI` 不仅仅是一个游戏生成器，它证明了：**通过合理的规则约束，可以极大地释放生成式 AI 的生产力，同时保持软件的工程严谨性。**
