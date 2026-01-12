@@ -77,8 +77,11 @@ export async function generateGameCode(skeletonId: string, userPrompt: string): 
       Keep the code in a SINGLE HTML file.
       Ensure high visual quality using Canvas API.
       
-      OUTPUT:
-      Return the full HTML code including <html>, <head>, and <body> tags.
+      CRITICAL OUTPUT RULES:
+      1. Return ONLY the raw HTML code.
+      2. DO NOT use markdown code blocks (like \`\`\`html).
+      3. DO NOT include any conversational text, explanations, or "Here is the code".
+      4. The output must start exactly with "<!DOCTYPE html>" and end with "</html>".
     `,
     config: {
       temperature: 0.7,

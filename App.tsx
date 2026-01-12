@@ -43,10 +43,31 @@ const App: React.FC = () => {
 
       // Phase 2: Generate Game Code
       addLog(`Generating game code based on ${skeletonId} skeleton...`, 'info');
-      const code = await generateGameCode(skeletonId, prompt);
+      const rawCode = await generateGameCode(skeletonId, prompt);
       
-      // Clean up markdown markers if LLM returns them
-      const cleanedCode = code.replace(/```html|```/g, '').trim();
+      // Smart Cleaning Logic: Extract only the valid HTML part
+      let cleanedCode = rawCode.trim();
+
+      // 1. If wrapped in markdown blocks, extract the content
+      const markdownMatch = cleanedCode.match(/```(?:html)?\s*([\s\S]*?)```/);
+      if (markdownMatch) {
+        cleanedCode = markdownMatch[1];
+      }
+
+      // 2. Locate the start of the HTML document to ignore preceding conversational text
+      const docTypeIndex = cleanedCode.indexOf('<!DOCTYPE html>');
+      const htmlTagIndex = cleanedCode.indexOf('<html');
+      
+      if (docTypeIndex !== -1) {
+        cleanedCode = cleanedCode.substring(docTypeIndex);
+      } else if (htmlTagIndex !== -1) {
+        cleanedCode = cleanedCode.substring(htmlTagIndex);
+      }
+
+      if (!cleanedCode.trim().startsWith('<')) {
+         addLog('Warning: Generated code might contain conversational text.', 'error');
+      }
+
       setGameCode(cleanedCode);
       addLog('Game generation complete!', 'success');
       setActiveTab('preview');
